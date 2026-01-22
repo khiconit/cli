@@ -9,39 +9,57 @@ import {
   getLogMiddleware,
   noCacheMiddleware,
   redirectToDevConsoleMiddleware,
-} from './server/middlewares.js'
-import {ExtensionsPayloadStore, ExtensionsPayloadStoreOptions} from './payload/store.js'
-import {ExtensionInstance} from '../../../models/extensions/extension-instance.js'
-import {createApp, createRouter} from 'h3'
-import {createServer} from 'http'
+} from "./server/middlewares.js";
+import {
+  ExtensionsPayloadStore,
+  ExtensionsPayloadStoreOptions,
+} from "./payload/store.js";
+import { ExtensionInstance } from "../../../models/extensions/extension-instance.js";
+import { createApp, createRouter } from "h3";
+import { createServer } from "http";
 
 interface SetupHTTPServerOptions {
-  devOptions: ExtensionsPayloadStoreOptions
-  payloadStore: ExtensionsPayloadStore
-  getExtensions: () => ExtensionInstance[]
+  devOptions: ExtensionsPayloadStoreOptions;
+  payloadStore: ExtensionsPayloadStore;
+  getExtensions: () => ExtensionInstance[];
 }
 
 export function setupHTTPServer(options: SetupHTTPServerOptions) {
-  const httpApp = createApp()
-  const httpRouter = createRouter()
+  const httpApp = createApp();
+  const httpRouter = createRouter();
 
-  httpApp.use(getLogMiddleware(options))
-  httpApp.use(corsMiddleware)
-  httpApp.use(noCacheMiddleware)
-  httpRouter.use('/extensions/dev-console', devConsoleIndexMiddleware)
-  httpRouter.use('/extensions/dev-console/assets/**:assetPath', devConsoleAssetsMiddleware)
-  httpRouter.use('/extensions/:extensionId', getExtensionPayloadMiddleware(options))
-  httpRouter.use('/extensions/:extensionId/', getExtensionPayloadMiddleware(options))
-  httpRouter.use('/extensions/:extensionId/:extensionPointTarget', getExtensionPointMiddleware(options))
-  httpRouter.use('/extensions/:extensionId/assets/**:assetPath', getExtensionAssetMiddleware(options))
-  httpRouter.use('/extensions', getExtensionsPayloadMiddleware(options))
-  httpRouter.use('/extensions/', getExtensionsPayloadMiddleware(options))
-  httpRouter.use('/', redirectToDevConsoleMiddleware)
+  httpApp.use(getLogMiddleware(options));
+  httpApp.use(corsMiddleware);
+  httpApp.use(noCacheMiddleware);
+  httpRouter.use("/extensions/dev-console", devConsoleIndexMiddleware);
+  httpRouter.use(
+    "/extensions/dev-console/assets/**:assetPath",
+    devConsoleAssetsMiddleware,
+  );
+  httpRouter.use(
+    "/extensions/:extensionId",
+    getExtensionPayloadMiddleware(options),
+  );
+  httpRouter.use(
+    "/extensions/:extensionId/",
+    getExtensionPayloadMiddleware(options),
+  );
+  httpRouter.use(
+    "/extensions/:extensionId/:extensionPointTarget",
+    getExtensionPointMiddleware(options),
+  );
+  httpRouter.use(
+    "/extensions/:extensionId/assets/**:assetPath",
+    getExtensionAssetMiddleware(options),
+  );
+  httpRouter.use("/extensions", getExtensionsPayloadMiddleware(options));
+  httpRouter.use("/extensions/", getExtensionsPayloadMiddleware(options));
+  httpRouter.use("/", redirectToDevConsoleMiddleware);
 
-  httpApp.use(httpRouter)
+  httpApp.use(httpRouter);
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  const httpServer = createServer(httpApp)
-  httpServer.listen(options.devOptions.port, 'localhost')
-  return httpServer
+  const httpServer = createServer(httpApp);
+  httpServer.listen(options.devOptions.port, "0.0.0.0");
+  return httpServer;
 }
